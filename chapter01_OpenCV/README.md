@@ -57,6 +57,7 @@ combined_small = cv.resize(combined, dsize=(0, 0), fx=0.5, fy=0.5)
 ## 플로우 차트
 <img src="./Flowchart/01_Flowchart.png" width="45%" alt="Image 창">
 
+---
 ## 전체 코드
 
 ```python
@@ -206,7 +207,10 @@ k = cv.waitKey(1) & 0xFF
 ```
 
 ---
+## 플로우 차트
+<img src="./Flowchart/02_Flowchart.png" width="45%" alt="Image 창">
 
+---
 ## 전체 코드
 
 ```python
@@ -401,7 +405,10 @@ cv.imwrite("roi.png", roi)
 ```
 
 ---
+## 플로우 차트
+<img src="./Flowchart/03_Flowchart.png" width="45%" alt="Image 창">
 
+---
 ## 전체 코드
 
 ```python 
