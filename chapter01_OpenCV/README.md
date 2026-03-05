@@ -540,5 +540,6 @@ python 03_roi_select_save.py
 * `r` 키를 누르면 선택이 초기화되고, 다시 ROI를 선택할 수 있다.
 * `s` 키를 누르면 현재 선택된 ROI가 `roi.png`로 저장되며, 터미널에 `Saved: roi.png`가 출력된다.
 * `q` 또는 `ESC`로 프로그램을 종료한다.
-<img src="./screenshots/03_result.png" width="45%" alt="Image 창">
+<img src="./screenshots/03_result1.png" width="45%" alt="Image 창">
+<img src="./screenshots/03_result2.png" width="45%" alt="Image 창">
 
