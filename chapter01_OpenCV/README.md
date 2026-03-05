@@ -147,9 +147,6 @@ python 01_load_and_grayscale.py
 * 아무 키나 누르면 창이 닫히며 프로그램이 종료된다.
 <img src="./screenshots/01_result.png" width="45%" alt="Image 창">
 
-
-아래는 **02번 과제용 README.md (마크다운)** 이고, 너가 올린 코드 기준으로 구성(문제 / 개념 / 전체 코드+핵심 / 실행결과) 맞춰서 작성했어. 그대로 `README.md`에 붙여넣으면 돼.
-
 ---
 
 # 02. 페인팅 붓 크기 조절 기능 추가
@@ -333,6 +330,8 @@ python 02_paint_on_image_brush.py
 * `-` 키: 붓 크기 감소 (최소 1)
 * `q` 키: 프로그램 종료
 * 붓 크기 변경 시 터미널에 `brush: 숫자` 형태로 출력된다.
+<img src="./screenshots/02_result1.png" width="45%" alt="Image 창">
+<img src="./screenshots/02_result2.png" width="45%" alt="Image 창">
 
 # 03. 마우스로 영역 선택 및 ROI(관심영역) 추출
 
@@ -541,4 +540,5 @@ python 03_roi_select_save.py
 * `r` 키를 누르면 선택이 초기화되고, 다시 ROI를 선택할 수 있다.
 * `s` 키를 누르면 현재 선택된 ROI가 `roi.png`로 저장되며, 터미널에 `Saved: roi.png`가 출력된다.
 * `q` 또는 `ESC`로 프로그램을 종료한다.
+<img src="./screenshots/03_result.png" width="45%" alt="Image 창">
 
