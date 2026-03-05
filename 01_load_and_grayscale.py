@@ -5,7 +5,7 @@ import argparse
 import os
 
 def main():
-    img_path = "soccer.jpg"  # 여기만 바꿔서 사용
+    img_path = "soccer.jpg"  
     if not os.path.exists(img_path):
         print("파일이 존재하지 않습니다.")
         sys.exit(1)
