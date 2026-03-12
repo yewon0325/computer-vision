@@ -43,14 +43,14 @@
 를 이용해 카메라 파라미터를 추정한다.
 
 * **Camera matrix K (3×3)**
-$$
+```math
 K =
 \begin{bmatrix}
 fx & 0 & cx \\
 0 & fy & cy \\
 0 & 0 & 1
 \end{bmatrix}
-$$
+```
 
   * (f_x, f_y): 초점거리(픽셀 단위)
   * (c_x, c_y): 주점(principal point)
