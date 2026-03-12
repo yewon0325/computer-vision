@@ -498,7 +498,7 @@ python 02.Rotation_Transformation.py
 2. 창의 왼쪽에는 **원본 이미지**, 오른쪽에는 **회전 + 축소 + 평행이동이 적용된 이미지**가 표시된다.
 3. 아무 키를 누르면 프로그램이 종료된다.
 
----
+
 
 <img src="./screenshots/02_result1.png" width="45%" alt="슬라이드 실행 결과">
 ---
