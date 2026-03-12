@@ -46,8 +46,8 @@
 $$
 K =
 \begin{bmatrix}
-f_x & 0 & c_x \\
-0 & f_y & c_y \\
+fx & 0 & cx \\
+0 & fy & cy \\
 0 & 0 & 1
 \end{bmatrix}
 $$
