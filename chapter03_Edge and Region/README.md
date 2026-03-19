@@ -1,4 +1,4 @@
-# 소벨 에지 검출 및 결과 시각화
+# 1. 소벨 에지 검출 및 결과 시각화
 
 ## 문제
 
@@ -184,7 +184,7 @@ pip install opencv-python matplotlib
 ---
 
 
-# 캐니 에지 및 허프 변환을 이용한 직선 검출
+# 2. 캐니 에지 및 허프 변환을 이용한 직선 검출
 
 ## 문제
 
@@ -384,7 +384,7 @@ pip install opencv-python matplotlib numpy
 
 ---
 
-# GrabCut을 이용한 대화식 영역 분할 및 객체 추출
+# 3. GrabCut을 이용한 대화식 영역 분할 및 객체 추출
 
 ## 문제
 
@@ -587,7 +587,7 @@ pip install opencv-python matplotlib numpy
 3. **Foreground Extraction**
    마스크를 원본에 적용하여 배경을 제거한 결과 이미지
 
-<img src="./screenshots/03_result1.png" width="45%" alt="ROI, disparity, depth 시각화 결과">
+<img src="./screenshots/03_result1.jpg" width="45%" alt="ROI, disparity, depth 시각화 결과">
 
 ---
 
