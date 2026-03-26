@@ -199,8 +199,8 @@ python 01_SIFT.py
 * 기본 SIFT 결과: 건물 창문, 도로 표시, 버스 주변, 신호등 주변 등 텍스처가 많은 영역에 매우 많은 특징점이 검출됨
 * 조정 SIFT 결과: 상대적으로 중요한 구조적 지점 위주로 특징점이 정리되어 표시됨
 
-<img src="./screenshots/01_result1.png" width="45%" alt="ROI, disparity, depth 시각화 결과">
 <img src="./screenshots/01_result2.png" width="45%" alt="ROI, disparity, depth 시각화 결과">
+<img src="./screenshots/01_result1.png" width="70%" alt="ROI, disparity, depth 시각화 결과">
 
 ---
 
