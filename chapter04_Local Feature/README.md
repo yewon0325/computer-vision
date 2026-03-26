@@ -760,5 +760,3 @@ python 03_Homography_Alignment.py
 결과적으로 이번 실험을 통해 SIFT 특징점, BFMatcher, ratio test, RANSAC 기반 호모그래피를 결합하면 서로 겹치는 장면을 가진 두 이미지를 효과적으로 정렬할 수 있음을 확인할 수 있었다.
 
 ---
-
-원하면 내가 지금 과제 3 README를 **처음부터 끝까지 한 번에 다시 정리된 최종본**으로 깔끔하게 묶어서 줄게.
