@@ -571,7 +571,7 @@ L06/sort_tracking_output.mp4
 ```
 
 ---
-<video src="L06/sort_tracking_output" width="320" height="240" controls></video>
+<video src="./L06/sort_tracking_output" width="320" height="240" controls></video>
 
 ---
 
