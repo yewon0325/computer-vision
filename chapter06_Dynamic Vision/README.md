@@ -576,7 +576,8 @@ L06/sort_tracking_output.mp4
 ```
 
 ---
-<video src="./L06/sort_tracking_output.mp4" controls width="700"></video>
+출력 영상 파일: [sort_tracking_output.mp4](./chapter06_Dynamic Vision/L06/sort_tracking_output.mp4)
+
 ---
 
 ## 7. 실행 결과
