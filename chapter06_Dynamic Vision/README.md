@@ -400,11 +400,6 @@ if __name__ == "__main__":  # 이 파일을 직접 실행했는지 확인함 -> 
 
 ---
 
-좋아, 코드가 길어서 핵심 코드가 더 있어 보이는 게 맞아.
-지금 있는 5.1~5.4에 이어서 **중요한 부분을 더 추가한 버전**으로 바로 붙여넣을 수 있게 정리해줄게.
-
----
-
 ## 5. 핵심 코드
 
 ### 5.1 YOLOv3를 이용한 객체 검출
@@ -576,7 +571,7 @@ L06/sort_tracking_output.mp4
 ```
 
 ---
-출력 영상 파일: [sort_tracking_output.mp4](./chapter06_Dynamic Vision/L06/sort_tracking_output.mp4)
+<video src="L06/sort_tracking_output" width="320" height="240" controls></video>
 
 ---
 
