@@ -571,8 +571,7 @@ L06/sort_tracking_output.mp4
 ```
 
 ---
-<video src="./L06/sort_tracking_output" width="320" height="240" controls></video>
-
+<img src="./sort_tracking_output.gif" width="700">
 ---
 
 ## 7. 실행 결과
