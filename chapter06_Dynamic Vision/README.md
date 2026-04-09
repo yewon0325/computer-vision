@@ -874,15 +874,8 @@ python 02_mediapipe_facemesh.py
 
 아래 이미지는 실제 실행 결과 예시이다.
 
-```markdown
-![실행 결과](./result_facemesh.png)
-```
-
-또는 현재 첨부한 실행 결과 이미지를 같은 폴더에 저장한 뒤 아래와 같이 표시할 수 있다.
-
-```markdown
 <img src="./screenshots/01_result1.png" width="45%" alt="ROI, disparity, depth 시각화 결과">
-```
+
 
 실행 결과에서는 다음과 같은 내용을 확인할 수 있다.
 
