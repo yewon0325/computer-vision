@@ -572,7 +572,6 @@ L06/sort_tracking_output.mp4
 
 ---
 <img src="./sort_tracking_output.gif" width="700">
----
 
 ## 7. 실행 결과
 
@@ -600,3 +599,313 @@ YOLOv3는 각 프레임에서 객체를 검출하는 역할을 수행하고, SOR
 또한 OpenCV DNN 모듈을 활용하여 YOLOv3를 직접 불러와 처리했기 때문에 추가적인 복잡한 딥러닝 프레임워크 없이도 구현이 가능했다.
 
 ---
+
+# Mediapipe를 활용한 얼굴 랜드마크 추출 및 시각화
+
+## 1. 문제
+
+본 과제의 목표는 MediaPipe를 이용하여 웹캠 영상에서 얼굴의 랜드마크를 실시간으로 검출하고, 검출된 랜드마크를 OpenCV로 시각화하는 프로그램을 구현하는 것이다.
+얼굴이 검출되면 얼굴의 윤곽, 눈, 코, 입 주변의 특징점들이 점 형태로 표시되며, 사용자가 움직일 때도 랜드마크가 실시간으로 따라오도록 구현한다.
+또한 ESC 키를 누르면 프로그램이 종료되도록 구성한다.
+
+---
+
+## 2. 요구사항
+
+과제에서 요구한 내용은 다음과 같다.
+
+* Mediapipe의 얼굴 랜드마크 검출기를 초기화한다.
+* OpenCV를 사용하여 웹캠으로부터 실시간 영상을 입력받는다.
+* 검출된 얼굴 랜드마크를 영상 위에 점으로 표시한다.
+* ESC 키를 누르면 프로그램이 종료되도록 설정한다.
+
+---
+
+## 3. 개념
+
+### 3.1 MediaPipe Face Landmark Detection
+
+MediaPipe는 얼굴, 손, 포즈 등 다양한 객체를 실시간으로 분석할 수 있는 라이브러리이다.
+이번 과제에서는 얼굴 랜드마크 모델을 사용하여 얼굴의 주요 특징점을 추출하였다.
+검출된 랜드마크는 정규화된 좌표값 `(x, y)` 형태로 반환되며, 이를 실제 이미지 크기에 맞는 픽셀 좌표로 변환하여 화면에 표시한다.
+
+### 3.2 OpenCV를 이용한 웹캠 영상 처리
+
+OpenCV는 영상 입력, 색상 변환, 도형 그리기, 화면 출력 등을 지원하는 컴퓨터 비전 라이브러리이다.
+본 코드에서는 웹캠으로부터 프레임을 가져오고, BGR 이미지를 RGB로 변환한 후 MediaPipe 모델에 입력한다.
+이후 검출된 랜드마크를 원 형태의 점으로 시각화한다.
+
+### 3.3 Face Landmarker 모델 파일
+
+MediaPipe Tasks API는 얼굴 랜드마크를 추출하기 위해 `.task` 형식의 모델 파일을 사용한다.
+본 코드에서는 `face_landmarker.task` 파일이 존재하지 않을 경우 자동으로 다운로드하도록 하여, 별도의 수동 준비 없이 바로 실행할 수 있도록 구성하였다.
+
+### 3.4 정규화 좌표와 픽셀 좌표
+
+MediaPipe가 반환하는 랜드마크 좌표는 0~1 범위의 정규화 좌표이다.
+따라서 실제 영상 위에 점을 찍기 위해서는 다음과 같이 변환해야 한다.
+
+* `x_pixel = landmark.x * 이미지 너비`
+* `y_pixel = landmark.y * 이미지 높이`
+
+이 과정을 통해 얼굴 위의 정확한 위치에 랜드마크를 표시할 수 있다.
+
+---
+
+## 4. 전체 코드
+
+```python
+import cv2                                          # 웹캠 영상 캡처 및 이미지 처리를 위해 임포트 → OpenCV 기능 사용 가능
+import mediapipe as mp                              # 얼굴 랜드마크 감지 모델을 사용하기 위해 임포트 → MediaPipe 기능 사용 가능
+from mediapipe.tasks import python                  # MediaPipe Tasks의 python 인터페이스 임포트 → 새 API 방식의 기반 모듈 로드
+from mediapipe.tasks.python import vision           # MediaPipe vision 태스크 임포트 → FaceLandmarker 등 비전 모델 사용 가능
+from mediapipe.tasks.python.vision import FaceLandmarkerOptions  # FaceLandmarker 옵션 클래스 임포트 → 검출기 설정값 구성에 사용
+from mediapipe.tasks.python.vision import FaceLandmarker         # FaceLandmarker 클래스 임포트 → 얼굴 랜드마크 검출기 생성에 사용
+from mediapipe.tasks.python.vision.core.vision_task_running_mode import VisionTaskRunningMode  # 실행 모드 클래스 임포트 → 영상/이미지 처리 모드 설정에 사용
+import urllib.request                               # URL에서 파일 다운로드를 위해 임포트 → 모델 파일 자동 다운로드에 사용
+import os                                           # 파일 존재 여부 확인을 위해 임포트 → 모델 파일 중복 다운로드 방지에 사용
+
+MODEL_PATH = "face_landmarker.task"                 # 다운로드할 모델 파일 경로(이름) 지정 → 이 경로에 모델 저장 및 로드
+
+if not os.path.exists(MODEL_PATH):                  # 모델 파일이 이미 존재하는지 확인 → 없을 때만 다운로드 실행
+    print("모델 파일 다운로드 중...")               # 다운로드 시작 안내 메시지 출력 → 사용자에게 진행 상황 알림
+    url = "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task"  # 공식 MediaPipe 모델 다운로드 URL 지정 → Google 서버에서 모델 파일 가져옴
+    urllib.request.urlretrieve(url, MODEL_PATH)     # URL에서 파일을 MODEL_PATH에 저장 → 모델 파일 다운로드 완료
+    print("다운로드 완료!")                         # 다운로드 완료 안내 메시지 출력 → 사용자에게 완료 알림
+
+options = FaceLandmarkerOptions(                    # FaceLandmarker 옵션 객체 생성 → 검출기 동작 방식 설정
+    base_options=python.BaseOptions(model_asset_path=MODEL_PATH),  # 모델 파일 경로를 기본 옵션으로 설정 → 지정한 모델 파일 로드
+    running_mode=VisionTaskRunningMode.VIDEO,       # 실행 모드를 VIDEO(연속 프레임)로 설정 → 웹캠 영상 처리에 적합한 모드
+    num_faces=1,                                    # 최대 감지할 얼굴 수를 1로 제한 → 1명의 얼굴만 처리
+    min_face_detection_confidence=0.5,              # 얼굴 감지 최소 신뢰도 0.5 설정 → 50% 이상 확신할 때만 감지
+    min_face_presence_confidence=0.5,               # 얼굴 존재 최소 신뢰도 0.5 설정 → 얼굴이 있다고 판단하는 기준값
+    min_tracking_confidence=0.5                     # 랜드마크 추적 최소 신뢰도 0.5 설정 → 50% 이상 확신할 때만 추적
+)
+
+face_landmarker = FaceLandmarker.create_from_options(options)  # 설정된 옵션으로 FaceLandmarker 검출기 생성 → 랜드마크 검출기 초기화 완료
+
+cap = cv2.VideoCapture(0)           # 기본 웹캠(인덱스 0) 열기 → 웹캠으로부터 실시간 영상 캡처 시작
+
+frame_idx = 0                       # 프레임 번호 카운터 초기화 → VIDEO 모드에서 타임스탬프 계산에 사용
+
+while True:                         # 무한 루프 시작 → ESC 키 입력 전까지 반복 실행
+    ret, frame = cap.read()         # 웹캠에서 프레임 한 장 읽기 → ret(성공여부), frame(영상 이미지) 반환
+
+    if not ret:                     # 프레임 읽기 실패 여부 확인 → 실패 시 루프 탈출
+        break                       # 읽기 실패 시 루프 종료 → 프로그램 안전하게 종료
+
+    frame = cv2.flip(frame, 1)      # 프레임 좌우 반전(거울 모드) → 사용자가 거울처럼 자연스럽게 보임
+
+    h, w, _ = frame.shape           # 프레임의 높이(h), 너비(w), 채널 수 추출 → 랜드마크 좌표 변환에 사용
+
+    rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # BGR → RGB 색상 변환 → MediaPipe가 요구하는 RGB 형식으로 변환
+
+    mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb_frame)  # numpy 배열을 MediaPipe Image 객체로 변환 → 새 API가 요구하는 입력 형식으로 변환
+
+    timestamp_ms = int(cap.get(cv2.CAP_PROP_POS_MSEC)) or (frame_idx * 33)  # 현재 프레임의 타임스탬프(ms) 계산 → VIDEO 모드에서 필수로 필요한 시간 정보 제공
+
+    results = face_landmarker.detect_for_video(mp_image, timestamp_ms)  # MediaPipe Image와 타임스탬프로 랜드마크 검출 → 468개 랜드마크 좌표 결과 반환
+
+    if results.face_landmarks:                          # 얼굴 랜드마크 감지 결과 존재 여부 확인 → 얼굴이 감지된 경우에만 처리
+        for face_landmarks in results.face_landmarks:   # 감지된 각 얼굴의 랜드마크 순회 → 얼굴별 랜드마크 처리
+            for landmark in face_landmarks:             # 얼굴의 468개 랜드마크 각각 순회 → 각 랜드마크 좌표 처리
+
+                x = int(landmark.x * w)     # 정규화된 x 좌표(0~1)를 실제 픽셀 x 좌표로 변환 → 이미지 너비에 맞는 실제 좌표 획득
+                y = int(landmark.y * h)     # 정규화된 y 좌표(0~1)를 실제 픽셀 y 좌표로 변환 → 이미지 높이에 맞는 실제 좌표 획득
+
+                cv2.circle(frame, (x, y), 1, (0, 255, 0), -1)  # 랜드마크 위치에 반지름 1px 초록색 점 그리기 → 468개 랜드마크가 얼굴 위에 점으로 표시됨
+
+    cv2.imshow("Face Landmark Detection", frame)    # 랜드마크가 그려진 프레임을 화면에 표시 → "Face Landmark Detection" 창에 실시간 영상 출력
+
+    frame_idx += 1                  # 프레임 번호 1 증가 → 다음 프레임의 타임스탬프 계산 준비
+
+    key = cv2.waitKey(1)            # 1ms 동안 키 입력 대기 → 눌린 키의 ASCII 코드 반환
+    if key == 27:                   # ESC 키(ASCII 27) 입력 여부 확인 → ESC 누르면 루프 종료
+        break                       # ESC 키 입력 시 루프 탈출 → 프로그램 종료 절차 시작
+
+cap.release()                       # 웹캠 장치 해제 → 다른 프로그램이 웹캠 사용 가능하도록 반환
+cv2.destroyAllWindows()             # 열린 모든 OpenCV 창 닫기 → 화면에 표시된 영상 창 종료
+face_landmarker.close()             # FaceLandmarker 검출기 리소스 해제 → 메모리 및 모델 자원 반환
+```
+
+---
+
+## 5. 핵심 코드
+
+### 5.1 모델 파일 자동 다운로드
+
+```python
+MODEL_PATH = "face_landmarker.task"
+
+if not os.path.exists(MODEL_PATH):
+    print("모델 파일 다운로드 중...")
+    url = "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task"
+    urllib.request.urlretrieve(url, MODEL_PATH)
+    print("다운로드 완료!")
+```
+
+이 부분은 얼굴 랜드마크 검출에 필요한 모델 파일이 현재 폴더에 존재하는지 확인하고, 없을 경우 자동으로 다운로드하는 코드이다.
+사용자는 별도로 모델 파일을 준비하지 않아도 되므로 실행 편의성이 높아진다.
+
+### 5.2 FaceLandmarker 옵션 설정
+
+```python
+options = FaceLandmarkerOptions(
+    base_options=python.BaseOptions(model_asset_path=MODEL_PATH),
+    running_mode=VisionTaskRunningMode.VIDEO,
+    num_faces=1,
+    min_face_detection_confidence=0.5,
+    min_face_presence_confidence=0.5,
+    min_tracking_confidence=0.5
+)
+```
+
+이 부분은 FaceLandmarker의 동작 방식을 설정하는 코드이다.
+모델 파일 경로, 실행 모드, 최대 얼굴 수, 얼굴 검출 신뢰도, 얼굴 존재 신뢰도, 추적 신뢰도 등을 지정한다.
+특히 `VIDEO` 모드는 연속적인 프레임을 처리하는 웹캠 환경에 적합하다.
+
+### 5.3 MediaPipe Image 객체 변환
+
+```python
+rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb_frame)
+```
+
+이 부분은 OpenCV에서 읽어온 프레임을 MediaPipe가 처리할 수 있는 형식으로 변환하는 코드이다.
+OpenCV는 기본적으로 BGR 형식을 사용하지만, MediaPipe는 RGB 형식을 사용하므로 색상 변환이 필요하다.
+변환된 이미지는 `mp.Image` 객체로 만들어져 랜드마크 검출기의 입력으로 사용된다.
+
+### 5.4 VIDEO 모드용 타임스탬프 계산
+
+```python
+timestamp_ms = int(cap.get(cv2.CAP_PROP_POS_MSEC)) or (frame_idx * 33)
+results = face_landmarker.detect_for_video(mp_image, timestamp_ms)
+```
+
+이 부분은 VIDEO 모드에서 필수로 요구되는 타임스탬프를 계산하고, 이를 이용하여 얼굴 랜드마크를 검출하는 코드이다.
+웹캠 입력에서는 현재 시간 정보를 직접 활용하기 어려울 수 있으므로, 프레임 번호를 기반으로 보조 타임스탬프를 생성하여 안정적으로 처리한다.
+
+### 5.5 정규화 좌표를 픽셀 좌표로 변환
+
+```python
+x = int(landmark.x * w)
+y = int(landmark.y * h)
+```
+
+이 부분은 MediaPipe가 반환한 0~1 범위의 정규화 좌표를 실제 영상 크기에 맞는 픽셀 좌표로 바꾸는 코드이다.
+이 변환을 통해 얼굴 위의 정확한 위치에 랜드마크를 표시할 수 있다.
+
+### 5.6 얼굴 랜드마크 시각화
+
+```python
+cv2.circle(frame, (x, y), 1, (0, 255, 0), -1)
+```
+
+이 부분은 변환된 랜드마크 좌표 위치에 초록색 점을 그리는 코드이다.
+얼굴 윤곽, 눈썹, 눈, 코, 입, 턱선 등의 특징점이 화면 위에 실시간으로 표시된다.
+
+### 5.7 ESC 키로 프로그램 종료
+
+```python
+key = cv2.waitKey(1)
+if key == 27:
+    break
+```
+
+이 부분은 키보드 입력을 확인하여 ESC 키가 눌렸을 때 프로그램을 종료하는 코드이다.
+과제 요구사항에 맞게 사용자가 쉽게 실행을 종료할 수 있도록 한다.
+
+---
+
+## 6. 실행 방법
+
+### 6.1 파일 구조
+
+예시 파일 구조는 다음과 같다.
+
+```text
+chapter06_Dynamic Vision/
+├─ 02_mediapipe_facemesh.py
+└─ README.md
+```
+
+프로그램을 처음 실행하면 `face_landmarker.task` 파일이 자동으로 다운로드되어 같은 폴더에 저장된다.
+
+```text
+chapter06_Dynamic Vision/
+├─ 02_mediapipe_facemesh.py
+├─ face_landmarker.task
+└─ README.md
+```
+
+### 6.2 라이브러리 설치
+
+아래 명령어를 실행하여 필요한 라이브러리를 설치한다.
+
+```bash
+pip install opencv-python mediapipe
+```
+
+### 6.3 프로그램 실행
+
+터미널에서 다음 명령어를 실행한다.
+
+```bash
+python 02_mediapipe_facemesh.py
+```
+
+### 6.4 프로그램 동작 방식
+
+프로그램을 실행하면 다음과 같은 순서로 동작한다.
+
+1. 얼굴 랜드마크 모델 파일 존재 여부를 확인한다.
+2. 모델 파일이 없으면 자동으로 다운로드한다.
+3. 웹캠을 열고 실시간 프레임을 읽는다.
+4. 얼굴 랜드마크를 검출한다.
+5. 검출된 랜드마크를 초록색 점으로 표시한다.
+6. ESC 키를 누르면 프로그램을 종료한다.
+
+---
+
+## 7. 실행 결과
+
+프로그램을 실행하면 웹캠 영상이 열리고, 얼굴이 인식되면 얼굴 위에 초록색 점 형태의 랜드마크가 실시간으로 표시된다.
+검출된 랜드마크는 얼굴 윤곽, 눈 주변, 코, 입, 턱선 등을 따라 촘촘하게 배치되며, 사용자가 얼굴을 움직이더라도 랜드마크가 함께 따라 움직인다.
+
+아래 이미지는 실제 실행 결과 예시이다.
+
+```markdown
+![실행 결과](./result_facemesh.png)
+```
+
+또는 현재 첨부한 실행 결과 이미지를 같은 폴더에 저장한 뒤 아래와 같이 표시할 수 있다.
+
+```markdown
+![실행 결과](./실행결과.png)
+```
+
+실행 결과에서는 다음과 같은 내용을 확인할 수 있다.
+
+* 얼굴이 검출되면 얼굴 위에 다수의 랜드마크 점이 표시됨
+* 눈, 코, 입, 얼굴 외곽선 등 주요 부위가 시각적으로 구분됨
+* 얼굴이 움직일 때 랜드마크도 실시간으로 따라 움직임
+* ESC 키를 누르면 프로그램이 종료됨
+
+---
+
+## 8. 실행 결과 분석
+
+이번 실습에서는 MediaPipe Face Landmarker와 OpenCV를 이용하여 얼굴 랜드마크를 실시간으로 추출하고 시각화하는 프로그램을 구현하였다.
+웹캠으로 입력받은 프레임을 MediaPipe가 처리 가능한 형식으로 변환한 뒤, 얼굴의 주요 특징점을 검출하여 화면 위에 점으로 표시하였다.
+그 결과, 얼굴의 윤곽선뿐 아니라 눈, 코, 입 주변의 세밀한 위치 정보까지 실시간으로 확인할 수 있었다.
+
+특히 본 코드에서는 모델 파일 자동 다운로드 기능을 추가하여 실행 편의성을 높였고, MediaPipe Tasks API의 VIDEO 모드를 이용해 연속 프레임 환경에 적합한 방식으로 얼굴 랜드마크를 처리하였다.
+또한 정규화 좌표를 픽셀 좌표로 변환하여 OpenCV 화면 위에 정확하게 표시함으로써 랜드마크의 위치를 직관적으로 확인할 수 있었다.
+
+실행 결과를 보면 얼굴 정면에서는 랜드마크가 비교적 안정적으로 추출되며, 안경을 착용한 상태에서도 눈과 얼굴 윤곽을 잘 따라가는 모습을 확인할 수 있었다.
+다만 조명 변화가 심하거나 얼굴이 크게 회전하는 경우, 일부 랜드마크가 흔들리거나 검출이 일시적으로 불안정해질 가능성이 있다.
+또한 본 실습은 최대 얼굴 수를 1개로 제한하였기 때문에 여러 명이 동시에 화면에 등장하는 환경에는 적합하지 않다.
+
+그럼에도 불구하고 본 과제는 **실시간 얼굴 랜드마크 검출의 기본 개념**, **정규화 좌표 변환**, **웹캠 영상 처리**, **OpenCV 기반 시각화**를 종합적으로 학습하는 데 매우 적합한 실습이었다.
+추후에는 여러 얼굴 동시 검출, 랜드마크 연결선 시각화, 표정 분석, 얼굴 방향 추정 등의 기능으로 확장할 수 있다.
+
